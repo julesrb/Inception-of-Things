@@ -20,7 +20,7 @@ graph TD;
     D -->|Runs| F[K3s Instance Agent]
 
 
-
+```
 ### **2️⃣ Part 2: Deploying Applications on K3s**  
 With a Kubernetes cluster running, the next step is to deploy three **web applications** with different scaling needs. This includes **configuring services, ingress rules**, and ensuring the correct distribution of requests among replicas.
 
