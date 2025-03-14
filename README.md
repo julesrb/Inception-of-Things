@@ -16,8 +16,10 @@ graph TD;
     A[Host Machine] -->|Runs| B[Vagrant]
     B -->|Creates VM| C[VM 1 - Master Node]
     B -->|Creates VM| D[VM 2 - Worker Node]
-    C -->|Runs| E[K3s Instance (Master)]
-    D -->|Runs| F[K3s Instance (Worker)]
+    C -->|Runs| E[K3s Instance ('Server')]
+    D -->|Runs| F[K3s Instance ('Agent')]
+
+
 
 ### **2️⃣ Part 2: Deploying Applications on K3s**  
 With a Kubernetes cluster running, the next step is to deploy three **web applications** with different scaling needs. This includes **configuring services, ingress rules**, and ensuring the correct distribution of requests among replicas.
