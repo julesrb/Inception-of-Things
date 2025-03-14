@@ -16,8 +16,8 @@ graph TD;
     A[Host Machine] -->|Runs| B[Vagrant]
     B -->|Creates VM| C[VM 1 - Master Node]
     B -->|Creates VM| D[VM 2 - Worker Node]
-    C -->|Runs| E[K3s Instance ('Server')]
-    D -->|Runs| F[K3s Instance ('Agent')]
+    C -->|Runs| E[K3s Instance Server]
+    D -->|Runs| F[K3s Instance Agent]
 
 
 
