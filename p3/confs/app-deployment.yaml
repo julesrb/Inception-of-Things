@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dtolmaco-42
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wil-playground
+  template:
+    metadata:
+      labels:
+        app: wil-playground
+    spec:
+      containers:
+        - image: wil42/playground:v2
+          name: wil-playground
+          ports:
+            - containerPort: 80
