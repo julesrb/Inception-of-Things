@@ -11,6 +11,7 @@ set -e
 # or
 # brew install k3d
 # brew install kubectl  
+# brew install argocd
 
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -24,26 +25,32 @@ k3d kubeconfig get dtolmaco > /dev/null
 
 kubectl config use-context k3d-dtolmaco
 
-if [ "$(kubectl config current-context)" = "k3d-dtolmaco" ]; then
-    echo -e "${GREEN}Context initialized successfully${RESET}"
-else
-    echo -e "${RED}Failed to initialize context${RESET}"
-    exit 1
-fi
-
 kubectl create namespace argocd
 kubectl create namespace dev
 
-# Create deployment from Argo CD yaml in argocd namespace
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# Create an Argo CD app in argocd namespace
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml > /dev/null
 
-# give time for pods to load
-sleep 10
+# give time for argocd to load
+echo -e "${GREEN} Sleeping for 40 seconds ${RESET}"
+sleep 40
 
 kubectl get pods -n argocd
 
 # forward ports to access argocd from localhost:8080
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+
+PASSWORD=$(argocd admin initial-password -n argocd | head -n 1)
+echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
+
+argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
+
+# deploy an app from our git
+argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
+
+sleep 10
+
+NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
 # forward ports to access deployed app from localhost:8888
-kubectl port-forward pod/dtolmaco-42-ttetwt 8888:8888 -n dev
+kubectl port-forward pod/${NAME} 8888:8888 -n dev &
