@@ -44,3 +44,6 @@ kubectl get pods -n argocd
 
 # forward ports to access argocd from localhost:8080
 kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# forward ports to access deployed app from localhost:8888
+kubectl port-forward pod/dtolmaco-42-ttetwt 8888:8888 -n dev
