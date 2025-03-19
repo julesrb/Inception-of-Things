@@ -1,0 +1,74 @@
+Vagrant.configure("2") do |config|
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+  config.vm.define "ashojachS", primary: true do |control|
+    control.vm.box = "generic/alpine318"
+    control.vm.hostname = "ashojachS"
+    control.vm.network "private_network", ip: "192.168.56.110"
+
+    control.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+
+    control.vm.provision "shell", inline: <<-SHELL
+      #!/bin/sh
+
+      apk add --no-cache iproute2 curl
+
+      until ip a show eth1 | grep "192.168.56.110"; do sleep 2; done
+
+      export INSTALL_K3S_EXEC="--write-kubeconfig-mode=644 --node-ip 192.168.56.110"
+      curl -sfL https://get.k3s.io | sh -
+
+      sleep 5
+
+      until [ -f /var/lib/rancher/k3s/server/token ] && [ -s /var/lib/rancher/k3s/server/token ]; do
+        echo "Waiting for K3s token..."
+        sleep 5
+      done
+
+      until [ -d /vagrant ]; do sleep 2; done
+
+      echo "Storing K3s token to /vagrant/token.env"
+      cat /var/lib/rancher/k3s/server/token
+      cat /var/lib/rancher/k3s/server/token > /vagrant/token.env
+      echo "K3s agent installation completed on server node."
+    SHELL
+  end
+
+  # Define Worker Node
+  config.vm.define "ashojachSW" do |worker|
+    worker.vm.box = "generic/alpine318"
+    worker.vm.hostname = "ashojachSW"
+    worker.vm.network "private_network", ip: "192.168.56.111"
+
+    worker.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+
+    worker.vm.provision "shell", inline: <<-SHELL
+      #!/bin/sh
+
+      apk add --no-cache iproute2 curl
+
+      until ip a show eth1 | grep "192.168.56.111"; do
+        echo "Waiting for eth1 interface..."
+        sleep 2
+      done
+
+      echo "Testing network connectivity to control node (ashojachS)..."
+      until ping -c 4 192.168.56.110; do
+        echo "Unable to reach control node (ashojachS), retrying..."
+        sleep 5
+      done
+
+      export INSTALL_K3S_EXEC="agent --server https://192.168.56.110:6443 --token=$(cat /vagrant/token.env) --node-ip=192.168.56.111"
+      curl -sfL https://get.k3s.io | sh -s
+
+      echo "K3s agent installation completed on worker node."
+    SHELL
+  end
+end
+
