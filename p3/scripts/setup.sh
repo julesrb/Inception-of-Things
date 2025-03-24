@@ -45,7 +45,7 @@ echo -e "${GREEN} ArgoCD is ready! ${RESET}"
 kubectl get pods -n argocd
 
 # forward ports to access argocd from localhost:8080
-kubectl port-forward svc/argocd-server -n argocd 8080:443 --request-timeout='0' &
+nohup kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &
 
 PASSWORD=$(argocd admin initial-password -n argocd | head -n 1)
 echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
@@ -66,4 +66,4 @@ done
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
 # forward ports to access deployed app from localhost:8888
-kubectl port-forward pod/${NAME} 8888:8888 -n dev --request-timeout='0' &
+nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &
