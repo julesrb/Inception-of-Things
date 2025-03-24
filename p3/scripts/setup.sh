@@ -17,7 +17,9 @@ RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 RESET=$(tput sgr0)
 
-k3d cluster delete --all
+#kill previous k3s instanced and port forwarding
+k3d cluster delete --all || true
+pkill -f "kubectl port-forward" || true
 
 k3d cluster create --config ../conf.yml
 
@@ -43,15 +45,12 @@ echo -e "${GREEN} ArgoCD is ready! ${RESET}"
 kubectl get pods -n argocd
 
 # forward ports to access argocd from localhost:8080
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+kubectl port-forward svc/argocd-server -n argocd 8080:443 --request-timeout='0' &
 
 PASSWORD=$(argocd admin initial-password -n argocd | head -n 1)
 echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
 
 argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
-
-echo -e "${GREEN} Waiting for ArgoCD to be ready for app creation... ${RESET}"
-sleep 5 
 
 # deploy an app from our git
 argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
@@ -67,4 +66,4 @@ done
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
 # forward ports to access deployed app from localhost:8888
-kubectl port-forward pod/${NAME} 8888:8888 -n dev &
+kubectl port-forward pod/${NAME} 8888:8888 -n dev --request-timeout='0' &
