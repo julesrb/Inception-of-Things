@@ -13,6 +13,22 @@ set -e
 # brew install kubectl  
 # brew install argocd
 
+retry() {
+  local n=0
+  local max=10
+  local delay=5
+
+  while [ $n -lt $max ]; do
+    "$@" && return 0 || {
+      n=$((n + 1))
+      echo "Attempt $n of $max failed: $1. Retrying in $delay seconds..."
+      sleep $delay
+    }
+  done
+  echo "Command failed after $max attempts. Exiting."
+  return 1
+}
+
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 RESET=$(tput sgr0)
@@ -53,7 +69,7 @@ echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
 argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
 
 # deploy an app from our git
-argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
+retry argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
 
 # Wait for the app to be ready
 echo -e "${GREEN} Waiting for the app to be deployed... ${RESET}"
