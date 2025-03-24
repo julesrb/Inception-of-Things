@@ -31,9 +31,14 @@ kubectl create namespace dev
 # Create an Argo CD app in argocd namespace
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml > /dev/null
 
-# give time for argocd to load
-echo -e "${GREEN} Sleeping for 40 seconds ${RESET}"
-sleep 40
+# Wait for ArgoCD pods to be ready
+echo -e "${GREEN} Waiting for ArgoCD to be ready... ${RESET}"
+while ! kubectl get pods -n argocd | grep "argocd-server" | grep -q "Running"; do
+    kubectl get pods -n argocd
+    echo -e "${RED} ArgoCD is not ready yet... ${RESET}"
+    sleep 5
+done
+echo -e "${GREEN} ArgoCD is ready! ${RESET}"
 
 kubectl get pods -n argocd
 
@@ -48,7 +53,13 @@ argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
 # deploy an app from our git
 argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
 
-sleep 10
+# Wait for the app to be ready
+echo -e "${GREEN} Waiting for the app to be deployed... ${RESET}"
+while ! kubectl get pods -n dev | grep "dtolmaco-42" | grep -q "Running"; do
+    kubectl get pods -n dev
+    echo -e "${RED} App is not ready yet... ${RESET}"
+    sleep 5
+done
 
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
