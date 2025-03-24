@@ -36,7 +36,7 @@ echo -e "${GREEN} Waiting for ArgoCD to be ready... ${RESET}"
 while ! kubectl get pods -n argocd | grep "argocd-server" | grep -q "Running"; do
     kubectl get pods -n argocd
     echo -e "${RED} ArgoCD is not ready yet... ${RESET}"
-    sleep 5
+    sleep 10
 done
 echo -e "${GREEN} ArgoCD is ready! ${RESET}"
 
@@ -50,6 +50,9 @@ echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
 
 argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
 
+echo -e "${GREEN} Waiting for ArgoCD to be ready for app creation... ${RESET}"
+sleep 5 
+
 # deploy an app from our git
 argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
 
@@ -58,7 +61,7 @@ echo -e "${GREEN} Waiting for the app to be deployed... ${RESET}"
 while ! kubectl get pods -n dev | grep "dtolmaco-42" | grep -q "Running"; do
     kubectl get pods -n dev
     echo -e "${RED} App is not ready yet... ${RESET}"
-    sleep 5
+    sleep 10
 done
 
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
