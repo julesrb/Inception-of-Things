@@ -36,8 +36,8 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 # Wait for ArgoCD pods to be ready
 echo -e "${GREEN} Waiting for ArgoCD to be ready... ${RESET}"
 while ! kubectl get pods -n argocd | grep "argocd-server" | grep -q "Running"; do
-    echo -e "${RED} ArgoCD is not ready yet... ${RESET}"
-    sleep 10
+	echo -e "${RED} ArgoCD is not ready yet... ${RESET}"
+	sleep 10
 	kubectl get pods -n argocd
 done
 echo -e "${GREEN} ArgoCD is ready! ${RESET}"
@@ -54,15 +54,15 @@ argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
 
 # deploy an app from our git
 while ! argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto; do
-  echo "App deployment failed. Retrying..."
-  sleep 5
+	echo "App deployment failed. Retrying..."
+	sleep 5
 done
 
 # Wait for the app to be ready
 echo -e "${GREEN} Waiting for the app to be deployed... ${RESET}"
 while ! kubectl get pods -n dev | grep "dtolmaco-42" | grep -q "Running"; do
-    echo -e "${RED} App is not ready yet... ${RESET}"
-    sleep 10
+	echo -e "${RED} App is not ready yet... ${RESET}"
+	sleep 10
 	kubectl get pods -n dev
 done
 
