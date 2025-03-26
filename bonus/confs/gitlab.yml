@@ -1,0 +1,29 @@
+global:
+  edition: ee
+  hosts:
+    domain: iot.dev
+
+certmanager-issuer:
+  email: iot@ft.com
+
+postgressql:
+  install: true
+
+redis:
+  storageClass: local-storage
+
+minto: # where backup are stored
+  persistance:
+    storageClass: local-storage
+
+prometheus: #statisc
+  server: 
+    storageClass: local-storage
+
+gitlab: 
+  gitaly: #for acess right
+    persistance:
+      storageClass: local-storage
+
+gitlab-runner: #we will use kubernetes gitlab runner instead
+  install: false

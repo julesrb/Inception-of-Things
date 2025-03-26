@@ -70,5 +70,5 @@ done
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
 # forward ports to access deployed app from localhost:8888
-nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &
+nohup kubectl port-forward pod/${NAME} 8081:80 -n dev > /dev/null 2>&1 &
 
