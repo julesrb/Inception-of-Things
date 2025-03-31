@@ -5,39 +5,10 @@ RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 RESET=$(tput sgr0)
 
-# sudo mkdir -p /mnt/data/gitlab
-# sudo mkdir -p /mnt/data/redis
-# sudo mkdir -p /mnt/data/minio
-# sudo mkdir -p /mnt/data/prometheus
-
-# Add kubernetes-dashboard repository
-helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
-# Deploy a Helm Release named "kubernetes-dashboard" using the kubernetes-dashboard chart
-helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
-
-echo -e "${GREEN} Waiting for the app to be deployed... ${RESET}"
-while ! kubectl get pods -n kubernetes-dashboard | grep "kubernetes-dashboard-kong" | grep -q "Running"; do
-	echo -e "${RED} Kubernetes dashboard is not ready yet... ${RESET}"
-	sleep 10
-	kubectl get pods -n kubernetes-dashboard
-done
-
-# Expose dashbaord to the host
-nohup kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443 > /dev/null 2>&1 &
-
-# generate dahsboard Token
-kubectl create serviceaccount dashboard-admin -n kubernetes-dashboard
-kubectl create clusterrolebinding dashboard-admin \
-  --clusterrole=cluster-admin \
-  --serviceaccount=kubernetes-dashboard:dashboard-admin
-TOKEN=$(kubectl create token dashboard-admin -n kubernetes-dashboard)
-echo "Dashboard available at https://127.0.0.1:8443 with token $(TOKEN)"
-
-
-Reset
-helm uninstall gitlab -n gitlab || yes
-kubectl delete all --all -n gitlab
-kubectl delete namespace gitlab
+# Reset
+helm uninstall gitlab -n gitlab || true
+kubectl delete all --all -n gitlab || true
+kubectl delete namespace gitlab || true
 
 
 # Installing helm 
