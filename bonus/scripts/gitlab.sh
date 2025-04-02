@@ -10,6 +10,8 @@ helm uninstall gitlab -n gitlab || true
 kubectl delete all --all -n gitlab || true
 kubectl delete namespace gitlab || true
 
+## Make Volume persitant and crete postgress SQL database (TO DO)
+# kubectl apply -f ../confs/PersistantVolumes.yml
 
 # Installing helm 
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
