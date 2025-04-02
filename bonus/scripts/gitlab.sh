@@ -29,15 +29,19 @@ helm install gitlab gitlab/gitlab \
 # Wait for the GitLab pods to be ready
 echo -e "${GREEN} Waiting for GitLab to be ready... (can last several minutes)${RESET}"
 kubectl get pods -n gitlab
-while ! kubectl get pods -n gitlab | grep "gitlab-nginx-ingress-controller" | grep -q "Running"; do
+while ! kubectl get pods -n gitlab | grep "gitlab-webservice" | grep -q "Running"; do
 	echo -e "${RED} Pods are Pending... ${RESET}"
 	sleep 15
 done
 kubectl get pods -n gitlab
 
 # Make gitlab available to host
-nohup kubectl port-forward svc/gitlab-webservice 8080:8889 -n gitlab > /dev/null 2>&1 &
+nohup kubectl port-forward svc/gitlab-webservice-default 8181:8181 -n gitlab > /dev/null 2>&1 &
+echo -e "${GREEN} Acces to gitlab webservice open on localhost:8181 ${RESET}"
 
 
+# set password for gitlab: AejF64hj
+POD_TOOLBOX=$(kubectl get pods -n gitlab | grep "gitlab-toolbox" | awk '{print $1}')
+echo "Pod name: $POD_TOOLBOX"
 
 
