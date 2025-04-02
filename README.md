@@ -29,27 +29,20 @@ The project evolves by replacing the Vagrant environment with containerized infr
 - Synchronization and drift detection mechanisms  
 
 ### **Bonus: Self-Hosted GitLab CI/CD with Argo CD Integration**  
-The most advanced section focuses on creating a complete, self-contained CI/CD ecosystem:
+This section focuses on creating a complete, self-contained CI/CD ecosystem:
 
 #### **Offline GitLab Installation:**
 - Deployment of GitLab using Helm charts on the K3d cluster  
 - Configuration of persistent storage for repositories and artifacts  
 - Setup of internal container registry for image management  
 
-#### **CI Pipeline Construction:**
-- Creation of project-specific `.gitlab-ci.yml` files  
-- Implementation of automated build, test, and packaging stages  
-- Integration with the GitLab Container Registry  
-
 #### **Argo CD GitOps Workflow:**
 - Automatic synchronization between GitLab repositories and cluster state  
 - Deployment approval workflows and health monitoring  
-- Rollback mechanisms through Git history  
 
 #### **Full Automation:**
 - Webhook triggers from GitLab to Argo CD  
 - End-to-end testing of the push-to-deploy pipeline  
-- Security considerations for self-hosted environments  
 
 This bonus section provides a comprehensive on-premises solution for development teams needing an air-gapped or private CI/CD system, combining GitLab's powerful automation features with Argo CD's GitOps capabilities in a lightweight Kubernetes environment.
 
