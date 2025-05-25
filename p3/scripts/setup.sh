@@ -44,6 +44,10 @@ echo -e "${GREEN} ArgoCD is ready! ${RESET}"
 
 kubectl get pods -n argocd
 
+echo -e "Applying Argo CD config file"
+
+kubectl apply -f ../confs/argocd-service.yaml
+
 # forward ports to access argocd from localhost:8080
 nohup kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &
 
@@ -69,4 +73,29 @@ done
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
 # forward ports to access deployed app from localhost:8888
-nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &
+#nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &# Get the name of the pod that is ready
+
+# Function to start port-forwarding
+function start_port_forwarding {
+    nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &
+    echo "Port-forwarding started on pod ${NAME} to localhost:8888"
+}
+
+# Start initial port forwarding
+start_port_forwarding
+
+# Monitor the pod and restart port-forwarding if the pod changes
+while true; do
+    # Check if the pod name has changed
+    NEW_NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
+    
+    if [ "$NEW_NAME" != "$NAME" ]; then
+        # Pod has changed, stop old port-forwarding and start new
+        echo "Pod has changed. Restarting port-forwarding..."
+        pkill -f "kubectl port-forward"  # Kill the previous port-forwarding process
+        NAME=$NEW_NAME  # Update pod name
+        start_port_forwarding  # Start port-forwarding to the new pod
+    fi
+    
+    sleep 10  # Check every 10 seconds
+done
