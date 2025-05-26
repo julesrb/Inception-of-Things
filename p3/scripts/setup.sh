@@ -11,10 +11,6 @@ pkill -f "kubectl port-forward" || true
 
 k3d cluster create dtolmaco
 
-k3d kubeconfig get dtolmaco > /dev/null
-
-kubectl config use-context k3d-dtolmaco
-
 kubectl create namespace argocd
 kubectl create namespace dev
 
@@ -60,7 +56,7 @@ echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
 argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
 
 # deploy an app from our git
-while ! argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto; do
+while ! argocd app create dtolmaco-42 --repo https://github.com/julesrb/jubernar.git --revision main --path conf/ --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto; do
 	echo "App deployment failed. Retrying..."
 	sleep 5
 done
