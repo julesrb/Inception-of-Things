@@ -1,18 +1,6 @@
 #!/bin/bash
 set -e
 
-# Docs
-# Argo CD: https://argo-cd.readthedocs.io/en/stable/getting_started/
-# K3D: https://k3d.io/stable
-
-# Installation for Mac Silicon chips
-# curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-# curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl" 
-# or
-# brew install k3d
-# brew install kubectl  
-# brew install argocd
-
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 RESET=$(tput sgr0)
@@ -21,7 +9,7 @@ RESET=$(tput sgr0)
 k3d cluster delete --all || true
 pkill -f "kubectl port-forward" || true
 
-k3d cluster create --config ../conf.yml
+k3d cluster create dtolmaco
 
 k3d kubeconfig get dtolmaco > /dev/null
 
@@ -44,12 +32,27 @@ echo -e "${GREEN} ArgoCD is ready! ${RESET}"
 
 kubectl get pods -n argocd
 
-echo -e "Applying Argo CD config file"
+function start_argocd_port_forwarding {
+    local retries=5
+    local count=0
+    
+    while true; do
+        if ! lsof -i :8080 > /dev/null; then
+            echo "Port-forwarding not running for ArgoCD on localhost:8080. Attempting to start..."
+            nohup kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &
+            count=$((count + 1))
+            
+            if [ $count -lt $retries ]; then
+                echo "Retry $count of $retries..."
+            else
+                echo "Failed to start port-forwarding after $retries attempts. Continuing..."
+            fi
+        fi
+        sleep 10
+    done
+}
 
-kubectl apply -f ../confs/argocd-service.yaml
-
-# forward ports to access argocd from localhost:8080
-nohup kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &
+start_argocd_port_forwarding &
 
 PASSWORD=$(argocd admin initial-password -n argocd | head -n 1)
 echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
@@ -72,9 +75,6 @@ done
 
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
-# forward ports to access deployed app from localhost:8888
-#nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &# Get the name of the pod that is ready
-
 # Function to start port-forwarding
 function start_port_forwarding {
     nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &
@@ -86,15 +86,13 @@ start_port_forwarding
 
 # Monitor the pod and restart port-forwarding if the pod changes
 while true; do
-    # Check if the pod name has changed
     NEW_NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
     
     if [ "$NEW_NAME" != "$NAME" ]; then
-        # Pod has changed, stop old port-forwarding and start new
         echo "Pod has changed. Restarting port-forwarding..."
         pkill -f "kubectl port-forward"  # Kill the previous port-forwarding process
-        NAME=$NEW_NAME  # Update pod name
-        start_port_forwarding  # Start port-forwarding to the new pod
+        NAME=$NEW_NAME
+        start_port_forwarding
     fi
     
     sleep 10  # Check every 10 seconds
