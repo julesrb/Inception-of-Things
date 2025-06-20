@@ -21,10 +21,6 @@ sleep 40
 
 kubectl get pods -n argocd
 
-<<<<<<< HEAD
-# forward ports to access argocd from localhost:8080
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
-=======
 function start_argocd_port_forwarding {
     local retries=5
     local count=0
@@ -46,7 +42,6 @@ function start_argocd_port_forwarding {
 }
 
 start_argocd_port_forwarding &
->>>>>>> origin/main
 
 PASSWORD=$(argocd admin initial-password -n argocd | head -n 1)
 echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
@@ -54,23 +49,15 @@ echo -e "${GREEN} Password is ${PASSWORD} ${RESET}"
 argocd login localhost:8080 --username admin --password ${PASSWORD} --insecure
 
 # deploy an app from our git
-<<<<<<< HEAD
-argocd app create dtolmaco-42 --repo https://github.com/julesrb/Inception-of-Things.git --revision dtolmaco/p3 --path p3/confs --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
-=======
 while ! argocd app create dtolmaco-42 --repo https://github.com/julesrb/jubernar.git --revision main --path conf/ --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto; do
 	echo "App deployment failed. Retrying..."
 	sleep 5
 done
->>>>>>> origin/main
 
 sleep 10
 
 NAME=$(kubectl get pods -n dev -o custom-columns="NAME:.metadata.name" | grep "dtolmaco-42" | head -n 1)
 
-<<<<<<< HEAD
-# forward ports to access deployed app from localhost:8888
-kubectl port-forward pod/${NAME} 8888:8888 -n dev &
-=======
 # Function to start port-forwarding
 function start_port_forwarding {
     nohup kubectl port-forward pod/${NAME} 8888:8888 -n dev > /dev/null 2>&1 &
@@ -93,4 +80,3 @@ while true; do
     
     sleep 10  # Check every 10 seconds
 done
->>>>>>> origin/main
