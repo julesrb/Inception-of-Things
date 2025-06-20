@@ -1,1 +1,0 @@
-VBoxManage modifyvm "proj42" --nested-hw-virt on //"porj42" = name of the top VM at school to allow nested virtualization
